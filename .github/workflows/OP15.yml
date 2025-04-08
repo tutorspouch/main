@@ -2,12 +2,14 @@ name: OP15
 
 on:
 
-  #push:
-    #branches:
-      #- '*'
-  pull_request:
-      branches:
-       - '*'
+  workflow_call:
+    inputs:
+      kernelsu_branch_other:
+      required: false
+      type: string
+  #pull_request:
+      #branches:
+       #- '*'
 
 jobs:
   build:
