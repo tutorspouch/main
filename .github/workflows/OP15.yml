@@ -2,16 +2,12 @@ name: OP15
 
 on:
 
-  use_cache:
-    required: false
-    btype: boolean
-    default: true
   #push:
     #branches:
       #- '*'
-  #pull_request:
-    #branches:
-      #- EYELESS-V0
+  pull_request:
+      branches:
+       - main
 
 jobs:
   build:
