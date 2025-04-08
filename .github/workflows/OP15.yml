@@ -1,6 +1,8 @@
 name: OP15
 
-#on:
+on:
+
+  workflow_dispatch
   #push:
     #branches:
       #- EYELESS-V0
