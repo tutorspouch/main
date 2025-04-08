@@ -2,10 +2,9 @@ name: OP15
 
 on:
 
-  workflow_dispatch
-  #push:
+  push:
     branches:
-      - MAIN
+      - '*'
   #pull_request:
     #branches:
       #- EYELESS-V0
