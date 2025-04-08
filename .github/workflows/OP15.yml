@@ -2,9 +2,10 @@ name: OP15
 
 on:
 
-  push:
-    branches:
-      - '*'
+  default: main
+  #push:
+    #branches:
+      #- '*'
   #pull_request:
     #branches:
       #- EYELESS-V0
