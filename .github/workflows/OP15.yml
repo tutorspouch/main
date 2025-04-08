@@ -4,8 +4,8 @@ on:
 
   workflow_dispatch
   #push:
-    #branches:
-      #- EYELESS-V0
+    branches:
+      - MAIN
   #pull_request:
     #branches:
       #- EYELESS-V0
