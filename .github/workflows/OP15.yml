@@ -1,12 +1,12 @@
 name: OP15
 
 on:
-  push:
-    branches:
-      - EYELESS-V0
-  pull_request:
-    branches:
-      - EYELESS-V0
+  #push:
+    #branches:
+      #- EYELESS-V0
+  #pull_request:
+    #branches:
+      #- EYELESS-V0
 
 jobs:
   build:
