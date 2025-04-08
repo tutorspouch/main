@@ -2,7 +2,10 @@ name: OP15
 
 on:
 
-  default: main
+  use_cache:
+    required: false
+    btype: boolean
+    default: true
   #push:
     #branches:
       #- '*'
