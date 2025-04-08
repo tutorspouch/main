@@ -3,10 +3,7 @@ name: OP15
 on:
 
   workflow_call:
-    inputs:
-      kernelsu_branch_other:
-      required: false
-      type: string
+  workflow_dispatch:
   #pull_request:
       #branches:
        #- '*'
