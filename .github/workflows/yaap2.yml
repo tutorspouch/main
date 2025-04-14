@@ -90,7 +90,7 @@ jobs:
       - name: Initialize repo and sync
         run: |
           mkdir kernel_workspace && cd kernel_workspace
-          git clone https://github.com/cabagekiller/kernel_oneplus_sm8650.git -b fifteen kernel_platform
+          git clone --depth=1 https://github.com/yaap/kernel_oneplus_sm8650.git -b fifteen kernel_platform
           rm -rf kernel_platform/android/abi_gki_protected_exports_*
           sed -i 's/ -dirty//g' kernel_platform/scripts/setlocalversion || true
 
