@@ -1,4 +1,4 @@
-name: Numbersf_SukiSU Ultra OnePlus
+name: Numbersf SukiSU Ultra OnePlus
 on:
   workflow_dispatch:
     inputs:
