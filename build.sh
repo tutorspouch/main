@@ -1,10 +1,21 @@
 mkdir kernel_workspace && cd kernel_workspace
-repo init -u https://github.com/RealJohnGalt/opsm8650_kernel_manifest.git -b kplatform -m default.xml --depth=1
-repo sync
+git config --global user.name "Numbersf"
+git config --global user.email "263623064@qq.com"
+
+curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
+chmod a+x ~/repo
+sudo mv ~/repo /usr/local/bin/repo
+
+repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/sm8650 -m oneplus12_v.xml
+repo sync -j$(nproc)
+
 git clone https://github.com/TheWildJames/kernel_patches.git
 git clone https://gitlab.com/simonpunk/susfs4ksu -b gki-android14-6.1 --depth=1 susfs
 git clone https://github.com/ShirkNeko/SukiSU_patch.git
-rm -rf /home/don/kernel_workspace/kernel_platform/common/android/abi_gki_protected_exports_*
+
+rm kernel_workspace/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+
+
 cd ~/kernel_workspace/kernel_platform/
 KERNEL_REPO=$(pwd)
 cd common
