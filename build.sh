@@ -6,6 +6,19 @@ curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
 chmod a+x ~/repo
 sudo mv ~/repo /usr/local/bin/repo
 
+
+repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/sm8650 -m oneplus12_v.xml --depth=1
+repo sync -c -j"$(nproc)" --force-sync --no-clone-bundle --no-tags
+
+rm -rf ./kernel_platform/common/android/abi_gki_protected_exports_*
+rm -rf ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_*
+
+
+
+ git clone --recursive https://github.com/WildKernels/AnyKernel3 -b non-gki
+
+
+
 repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/sm8650 -m oneplus12_v.xml
 repo sync -j$(nproc)
 
