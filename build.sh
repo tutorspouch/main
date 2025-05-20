@@ -11,6 +11,30 @@ repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/sm8650
 repo sync -c -j"$(nproc)" --force-sync --no-clone-bundle --no-tags
 
 rm -rf ./kernel_platform/common/android/abi_gki_protected_exports_*
+
+ git clone --recursive https://github.com/WildKernels/AnyKernel3 -b non-gki
+
+          mkdir -p out
+          start_time=$(date +%s)
+          #export PATH="/usr/lib/ccache:$PATH"
+          ./build_with_bazel.py \
+            -t pineapple gki \
+            --jobs="$(nproc --all)" --verbose_failures --config=stamp \
+            --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
+            --ignore_missing_projects -o "$(pwd)/out"
+          end_time=$(date +%s)
+          build_time=$((end_time - start_time))
+          echo "Kernel build time: $build_time seconds"
+
+
+cp /kernel_workspace/kernel_plaform/out/dist/Image AnyKernel3/Image
+cd AnyKernel3
+ZIP_NAME="Vanilla-OP12.zip"
+zip -r "../$ZIP_NAME" ./*
+
+
+
+
 rm -rf ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_*
 
 
