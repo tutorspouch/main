@@ -9,7 +9,7 @@ on:
 env:
   DEBIAN_FRONTEND: noninteractive
   ROOT_DIR_PREFIX: "OP12-A15"
-  BRANCH: "non-gki"
+  BRANCH: "gki-2.0"
 
 jobs:
   build-release:
