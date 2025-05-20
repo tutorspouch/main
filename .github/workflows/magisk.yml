@@ -1,4 +1,4 @@
-name: Build and Release Kernel with Submodule
+name: Magisk
 
 on:
   pull_request:
