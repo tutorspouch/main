@@ -108,6 +108,7 @@ jobs:
           done
           [ $? -eq 0 ] || { echo "Repo sync failed after multiple attempts."; exit 1; }
           rm -rf ./kernel_platform/common/android/abi_gki_protected_exports_*
+          rm -rf ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_*
 
       - name: Build Kernel
         working-directory: ${{ env.BUILD_DIR }}/${{ env.KERNEL_DIR }}/kernel_platform
