@@ -1,3 +1,9 @@
 
 The Moby Project - a collaborative project for the container ecosystem to assemble container-based systems
 https://github.com/moby/moby
+
+Target Device: alioth-apollo-cas-cmi-dagu-elish-enuma-lmi-munch-pipa-psyche-thyme-umi
+Compiled System: AOSP
+KernelSU Variant: SukiSU-Ultra
+KPM Support: enable
+https://github.com/Xiaomichael/Build_SM8250_Kernel/tree/Build
