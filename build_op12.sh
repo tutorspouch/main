@@ -11,10 +11,10 @@ read -p "请输入 SoC 分支名称（默认：sm8650）: " SOC_BRANCH
 SOC_BRANCH=${SOC_BRANCH:-sm8650}
 
 read -p "请输入 manifest 文件名（默认：oneplus_ace3_pro_v.xml）: " MANIFEST_FILE
-MANIFEST_FILE=${MANIFEST_FILE:-oneplus_ace3_pro_v.xml}
+MANIFEST_FILE=${MANIFEST_FILE:-oneplus12_v.xml}
 
 read -p "请输入自定义内核后缀（默认：oki-Coolapk@Suxiaoqing）: " CUSTOM_SUFFIX
-CUSTOM_SUFFIX=${CUSTOM_SUFFIX:-oki-Coolapk@Suxiaoqing}
+CUSTOM_SUFFIX=${CUSTOM_SUFFIX:-custom@linux}
 
 read -p "请输入 Bazel 构建目标（默认：pineapple）: " BAZEL_TARGET
 BAZEL_TARGET=${BAZEL_TARGET:-pineapple}
@@ -59,7 +59,7 @@ cd "$WORKDIR"
 echo ">>> 初始化仓库..."
 "$SCRIPT_DIR/repo" init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${SOC_BRANCH} -m ${MANIFEST_FILE} --depth=1
 echo ">>> repo init 完成"
-"$SCRIPT_DIR/repo" sync -j16 --fail-fast
+"$SCRIPT_DIR/repo" sync -j8 --fail-fast
 echo ">>> repo sync 完成"
 
 cd kernel_platform
@@ -200,7 +200,7 @@ fi
 # ===== 克隆并打包 AnyKernel3 =====
 cd "$WORKDIR"
 echo ">>> 克隆 AnyKernel3 项目..."
-git clone https://github.com/Suxiaoqinx/AnyKernel3 --depth=1
+git clone https://github.com/tutorspouch/AnyKernel3 --depth=1
 
 echo ">>> 清理 AnyKernel3 Git 信息..."
 rm -rf ./AnyKernel3/.git
@@ -214,7 +214,7 @@ cd "$WORKDIR/AnyKernel3"
 # ===== 如果启用 lz4kd，则下载 zram.zip 并放入当前目录 =====
 if [[ "$APPLY_LZ4KD" == "y" || "$APPLY_LZ4KD" == "Y" ]]; then
   echo ">>> 检测到启用了 lz4kd，准备下载 zram.zip..."
-  curl -LO https://raw.githubusercontent.com/Suxiaoqinx/kernel_manifest_OnePlus_Sukisu_Ultra/main/zram.zip
+  curl -LO https://raw.githubusercontent.com/tutorspouch/zram/main/zram.zip
   echo ">>> 已下载 zram.zip 并放入打包目录"
 fi
 
