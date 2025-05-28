@@ -10,10 +10,10 @@ echo ">>> 读取用户配置..."
 read -p "请输入 SoC 分支名称（默认：sm8650）: " SOC_BRANCH
 SOC_BRANCH=${SOC_BRANCH:-sm8650}
 
-read -p "请输入 manifest 文件名（默认：oneplus_ace3_pro_v.xml）: " MANIFEST_FILE
+read -p "请输入 manifest 文件名（默认：oneplus12_v.xml）: " MANIFEST_FILE
 MANIFEST_FILE=${MANIFEST_FILE:-oneplus12_v.xml}
 
-read -p "请输入自定义内核后缀（默认：oki-Coolapk@Suxiaoqing）: " CUSTOM_SUFFIX
+read -p "请输入自定义内核后缀（默认：custom@linux）: " CUSTOM_SUFFIX
 CUSTOM_SUFFIX=${CUSTOM_SUFFIX:-custom@linux}
 
 read -p "请输入 Bazel 构建目标（默认：pineapple）: " BAZEL_TARGET
