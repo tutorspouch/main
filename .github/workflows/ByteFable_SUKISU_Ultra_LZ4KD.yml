@@ -1,4 +1,4 @@
-name: ByteFable_SUKISU_Ultra_LZ4KD.yml
+name: ByteFable_SUKISU_Ultra_LZ4KD
 on:
   workflow_dispatch:
     inputs:
