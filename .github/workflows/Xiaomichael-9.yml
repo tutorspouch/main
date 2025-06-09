@@ -1,3 +1,4 @@
+
 name: Xiaomichael-9
 on:
   workflow_dispatch:
@@ -103,7 +104,6 @@ jobs:
         run: |
          git config --global user.name "bulid"
          git config --global user.email "2210077278@qq.com"
-
       - name: 📦 Install dependencies (安装依赖)
         run: |
          sudo apt update && sudo apt upgrade -y
@@ -123,7 +123,6 @@ jobs:
          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
          chmod a+x ~/repo
          sudo mv ~/repo /usr/local/bin/repo
-
       - name: 📥 Initialize repo and sync (克隆内核源码)
         run: |
          mkdir kernel_workspace && cd kernel_workspace
@@ -185,7 +184,6 @@ jobs:
             cp ../../SukiSU_patch/other/zram/zram_patch/${{ github.event.inputs.KERNEL_VERSION }}/lz4k_oplus.patch ./
             patch -p1 -F 3 < lz4k_oplus.patch || true
           fi
-
       - name: 🔧 Apply HMBird GKI patch (配置6.6系的一些参数)
         if: ${{ github.event.inputs.KERNEL_VERSION == '6.6' }}
         run: |
@@ -196,31 +194,26 @@ jobs:
          #include <linux/of.h>
          #include <linux/slab.h>
          #include <linux/string.h>
-
          static int __init hmbird_patch_init(void)
          {
              struct device_node *ver_np;
              const char *type;
              int ret;
-
              ver_np = of_find_node_by_path("/soc/oplus,hmbird/version_type");
              if (!ver_np) {
                   pr_info("hmbird_patch: version_type node not found\n");
                   return 0;
              }
-
              ret = of_property_read_string(ver_np, "type", &type);
              if (ret) {
                   pr_info("hmbird_patch: type property not found\n");
                   of_node_put(ver_np);
                   return 0;
              }
-
              if (strcmp(type, "HMBIRD_OGKI")) {
                   of_node_put(ver_np);
                   return 0;
              }
-
              struct property *prop = of_find_property(ver_np, "type", NULL);
              if (prop) {
                   struct property *new_prop = kmalloc(sizeof(*prop), GFP_KERNEL);
@@ -239,7 +232,6 @@ jobs:
             }
             strcpy(new_prop->value, "HMBIRD_GKI");
             new_prop->length = strlen("HMBIRD_GKI") + 1;
-
             if (of_remove_property(ver_np, prop) != 0) {
                  pr_info("hmbird_patch: of_remove_property failed\n");
                  return 0;
@@ -275,7 +267,6 @@ jobs:
          cp -r ./sched_ext/* ./common/kernel/sched
          rm -rf ./sched_ext/.git
          cd common/kernel/sched
-
       - name: 🔧 Apply new hook & Add configuration (配置 一些内核开关)
         run: |
           cd kernel_workspace/kernel_platform
@@ -323,7 +314,7 @@ jobs:
           
       - name: 🔨 Build Kernel (构建内核)
         run: |
-          if [ "${{ github.event.inputs.KERNEL_VERSION }}" == "6.1"]; then
+          if [ "${{ github.event.inputs.KERNEL_VERSION }}" == "6.1" ]; then
             export PATH="$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/prebuilts/clang/host/linux-x86/clang-r487747c/bin:$PATH"
             export PATH="/usr/lib/ccache:$PATH"
             sudo apt install libelf-dev
@@ -352,7 +343,6 @@ jobs:
           dir6="kernel_workspace/kernel_platform/common/out/arch/arm64/boot/"
           target1="./AnyKernel3/"
           target2="./kernel_workspace/kernel"
-
           if find "$dir1" -name "Image" | grep -q "Image"; then
             image_path="$dir1"Image
           elif find "$dir2" -name "Image" | grep -q "Image"; then
@@ -368,7 +358,6 @@ jobs:
           else
             image_path=$(find "./kernel_workspace/kernel_platform/common/out/" -name "Image" | head -n 1)
           fi
-
           if [ -n "$image_path" ] && [ -f "$image_path" ]; then
             mkdir -p "$dir1"
             if [ "$(realpath "$image_path")" != "$(realpath "$dir1"Image)" ]; then
