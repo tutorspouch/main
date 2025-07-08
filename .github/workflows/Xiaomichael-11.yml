@@ -381,6 +381,14 @@ jobs:
           # Add USB config
           echo "CONFIG_USB_CONFIGFS_OBEX=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_USB_CONFIGFS_ECM_SUBSET=y" >> ./common/arch/arm64/configs/gki_defconfig
+          # ECN配置*
+          echo "CONFIG_IP_ECN=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_TCP_ECN=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_IPV6_ECN=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_IP_NF_TARGET_ECN=y" >> ./common/arch/arm64/configs/gki_defconfig
+          # TMPFS配置*
+          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_TMPFS_POSIX_ACL=y" >> ./common/arch/arm64/configs/gki_defconfig
 
           if [ "${{ github.event.inputs.proxy }}" == "On" ]; then
             # Add proxy config
