@@ -1,4 +1,4 @@
-name: Build OnePlus SukiSU Ultra
+name: Numbersf
 on:
   workflow_dispatch:
     inputs:
