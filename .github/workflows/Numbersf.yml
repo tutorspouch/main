@@ -595,6 +595,10 @@ jobs:
           # TMPFS配置*
           echo "CONFIG_TMPFS_XATTR=y" >> "$CONFIG_FILE"
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> "$CONFIG_FILE"
+          
+            # Add USB config
+          echo "CONFIG_USB_CONFIGFS_OBEX=y" >> "$CONFIG_FILE"
+          echo "CONFIG_USB_CONFIGFS_ECM_SUBSET=y" >> "$CONFIG_FILE"
 
           # BBR配置*
           echo "CONFIG_TCP_CONG_ADVANCED=y" >> "$CONFIG_FILE"
