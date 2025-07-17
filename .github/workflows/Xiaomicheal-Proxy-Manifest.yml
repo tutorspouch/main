@@ -1,4 +1,4 @@
-name: Xiaomicheal-Proxy-Manifest
+name: Build OnePlus SukiSU Ultra
 on:
   workflow_dispatch:
     inputs:
@@ -14,7 +14,6 @@ on:
           - 'sm8475'
           - 'sm7675'
           - 'sm7550'
-          - 'sm6375'
         default: 'sm8650'
         
       FEIL:
@@ -40,7 +39,6 @@ on:
           - 'oneplus_10_pro'
           - 'oneplus_ace_3v'
           - 'onrplus_nord_4'
-          - 'oneplus_nord_ce4_lite_5g'
           - 'oneplus_nord_ce4'
         default: 'oneplus_12'
         
@@ -53,7 +51,6 @@ on:
           - 'kalama'
           - 'waipio'
           - 'crow'
-          - 'blair'
         default: 'pineapple'
         
       ANDROID_VERSION:
@@ -140,14 +137,12 @@ jobs:
           echo "CCACHE_DIR=$HOME/.ccache_${{ github.event.inputs.FEIL }}" >> $GITHUB_ENV
           mkdir -p "$HOME/.ccache_${{ github.event.inputs.FEIL }}"
           echo "✅ 缓存目录已设置: $HOME/.ccache_${{ github.event.inputs.FEIL }}"
-
       - name: "🔐 Configure Git | 配置Git账户"
         run: |
           echo "🔧 正在配置Git用户信息..."
           git config --global user.name "build"
           git config --global user.email "2210077278@qq.com"
           echo "✅ Git配置完成"
-
       # ====================== 依赖管理阶段 ======================
       - name: "📦 Configure APT Cache | 配置APT缓存"
         run: |
@@ -162,7 +157,6 @@ jobs:
           echo "Acquire::Languages \"none\";" | sudo tee -a /etc/apt/apt.conf.d/90user-cache
           sudo chown -R $USER:$USER "$APT_CACHE_DIR"
           echo "✅ APT缓存配置完成"
-
       - name: "📦 Restore APT Cache | 恢复APT缓存"
         uses: actions/cache@v3
         with:
@@ -170,7 +164,6 @@ jobs:
           key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/Build SukiSU Ultra.yml') }}
           restore-keys: |
             ${{ runner.os }}-apt-
-
       - name: "📦 Install Dependencies | 安装构建依赖"
         run: |
           echo "🔧 正在安装编译依赖项..."
@@ -185,7 +178,6 @@ jobs:
             libncurses-dev liblz4-tool zlib1g-dev \
             libxml2-utils rsync unzip
           echo "✅ 所有依赖项已成功安装"
-
       # ====================== 缓存管理阶段 ======================
       - name: "💾 Restore ccache | 恢复ccache缓存"
         uses: actions/cache@v3
@@ -195,7 +187,6 @@ jobs:
           restore-keys: |
             ccache-${{ runner.os }}-${{ github.event.inputs.FEIL }}-
             ccache-${{ runner.os }}-
-
       - name: "⚙️ Initialize ccache | 初始化ccache"
         run: |
           echo "🔧 正在初始化ccache..."
@@ -216,7 +207,6 @@ jobs:
           # 显示缓存统计
           ccache -s
           echo "✅ ccache初始化流程完成"
-
       # ====================== 源码准备阶段 ======================
       - name: "📥 Install Repo Tool | 安装Repo工具"
         run: |
@@ -225,7 +215,6 @@ jobs:
           chmod a+x ~/repo
           sudo mv ~/repo /usr/local/bin/repo
           echo "✅ repo工具安装完成"
-
       - name: "⬇️ Clone Kernel Source | 克隆内核源码"
         run: |
          echo "🌐 正在初始化内核仓库..."
@@ -331,7 +320,6 @@ jobs:
           # cp ../sukisu-quick-setup/patches/01-add-zakosu-manager.patch ./common/
           # patch -p1 -F 3 < 01-add-zakosu-manager.patch
           echo "✅ 所有补丁应用完成"
-
       - name: "⚙️ Configure Kernel Options | 配置内核选项"
         run: |
           echo "⚙️ 正在配置内核编译选项..."
@@ -385,7 +373,6 @@ jobs:
             echo "📦 为6.1加入O2优化"
             echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
-
           if [ "${{ github.event.inputs.proxy }}" == "On" ]; then
             # Add proxy config
             echo "CONFIG_BPF_STREAM_PARSER=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -475,7 +462,6 @@ jobs:
           dir6="kernel_workspace/kernel_platform/common/out/arch/arm64/boot/"
           target1="./AnyKernel3/"
           target2="./kernel_workspace/kernel"
-
           if find "$dir1" -name "Image" | grep -q "Image"; then
             image_path="$dir1"Image
           elif find "$dir2" -name "Image" | grep -q "Image"; then
@@ -491,7 +477,6 @@ jobs:
           else
             image_path=$(find "./kernel_workspace/kernel_platform/common/out/" -name "Image" | head -n 1)
           fi
-
           if [ -n "$image_path" ] && [ -f "$image_path" ]; then
             mkdir -p "$dir1"
             if [ "$(realpath "$image_path")" != "$(realpath "$dir1"Image)" ]; then
@@ -518,7 +503,6 @@ jobs:
           cp Image $GITHUB_WORKSPACE/AnyKernel3/Image
           cp Image $GITHUB_WORKSPACE/kernel_workspace/kernel
           echo "✅ KPM补丁应用完成"
-
       # ====================== 上传阶段 ======================
       - name: "🧠 Set Artifact Name | 设置产物名称"
         id: set_name
@@ -530,7 +514,6 @@ jobs:
           else
             echo "ARTIFACT_NAME=AnyKernel3_SukiSU_Ultra_${{ env.KSUVER }}_${{ github.event.inputs.FEIL }}" >> $GITHUB_OUTPUT
           fi
-
       - name: "📤 Upload AnyKernel3 | 上传 AnyKernel3"
         uses: actions/upload-artifact@v4
         with:
@@ -549,6 +532,6 @@ jobs:
         with:
           name: zram.ko
           path: ./kernel_workspace/kernel_platform/common/out/drivers/block/zram/zram.ko
-          
+        
       #- name: 📊 Post-build disk check (构建后空间检查)
       #  run: df -h
