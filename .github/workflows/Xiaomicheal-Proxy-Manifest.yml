@@ -1,4 +1,4 @@
-name: Build OnePlus SukiSU Ultra
+name: Xiaomicheal-Proxy-Manifest
 on:
   workflow_dispatch:
     inputs:
