@@ -183,7 +183,11 @@ jobs:
           echo "Selected FILE: ${{ github.event.inputs.FILE }}"
           echo "Custom KSU_META: ${{ github.event.inputs.KSU_META }}"
           echo "Custom BUILD_TIME: ${{ github.event.inputs.BUILD_TIME }}"
+          echo -n "BUILD_TIME Unicode: "
+          python3 -c "print(''.join(f'U+{ord(c):04X} ' for c in '''${{ github.event.inputs.BUILD_TIME }}'''))"
           echo "Custom SUFFIX: ${{ github.event.inputs.SUFFIX }}"
+          echo -n "SUFFIX Unicode: "
+          python3 -c "print(''.join(f'U+{ord(c):04X} ' for c in '''${{ github.event.inputs.SUFFIX }}'''))"
           echo "Selected SUSFS_CI: ${{ github.event.inputs.SUSFS_CI }}"
           echo "Selected VFS: ${{ github.event.inputs.VFS }}"
           echo "Selected KPM: ${{ github.event.inputs.KPM }}"
@@ -626,7 +630,10 @@ jobs:
             echo "CONFIG_CRYPTO_LZ4K_OPLUS=y" >> "$CONFIG_FILE"
             echo "CONFIG_ZRAM_WRITEBACK=y" >> "$CONFIG_FILE"
           fi
-
+          # Add USB config
+          echo "CONFIG_USB_CONFIGFS_OBEX=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_USB_CONFIGFS_ECM_SUBSET=y" >> ./common/arch/arm64/configs/gki_defconfig
+          
           # 移除构建审查
           sed -i 's/check_defconfig//' ./common/build.config.gki
 
