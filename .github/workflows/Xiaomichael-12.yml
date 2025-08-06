@@ -144,14 +144,15 @@ jobs:
           )
           FILE="${{ github.event.inputs.FILE }}"
           if [[ "$FILE" =~ ^(.+)_([a-zA-Z])$ ]]; then
-            FILE_BASE="${BASH_REMATCH[1]}"
+            FILE_CONF="${BASH_REMATCH[1]}"
           else
-            FILE_BASE="$FILE"
+            FILE_CONF="$FILE"
           fi
+          FILE_BASE=$(echo "$FILE_CONF" | sed -E 's/_([a-zA-Z0-9])/\U\1/g; s/^oneplus/OnePlus/')
           mkdir -p ".repo/manifests_fallback"
           XML_PATH=".repo/manifests_fallback/${FILE}.xml"
           README_PATH=".repo/manifests_fallback/README.md"
-          echo "处理 FILE=$FILE, BASE=$FILE_BASE"
+          echo "处理 FILE=$FILE, CONF=$FILE_CONF, BASE=$FILE_BASE"
           echo "🌐 拉取 OnePlus manifest 分支列表..."
           BRANCHES=$(curl -s https://api.github.com/repos/OnePlusOSS/kernel_manifest/branches | jq -r '.[].name')
 
@@ -191,13 +192,13 @@ jobs:
             exit 1
           fi
           echo "解析 KVERSION_MAP 获取 KANDROID_VERSION 和 KERNEL_VERSION..."
-          if [[ -n "${KVERSION_MAP[$FILE_BASE]}" ]]; then
-            read -r KANDROID_VERSION KERNEL_VERSION <<< "${KVERSION_MAP[$FILE_BASE]}"
-            echo "✅ KVERSION_MAP[$FILE_BASE] = $KANDROID_VERSION $KERNEL_VERSION"
+          if [[ -n "${KVERSION_MAP[$FILE_CONF]}" ]]; then
+            read -r KANDROID_VERSION KERNEL_VERSION <<< "${KVERSION_MAP[$FILE_CONF]}"
+            echo "✅ KVERSION_MAP[$FILE_CONF] = $KANDROID_VERSION $KERNEL_VERSION"
             echo "KANDROID_VERSION=$KANDROID_VERSION" >> $GITHUB_ENV
             echo "KERNEL_VERSION=$KERNEL_VERSION" >> $GITHUB_ENV
           else
-            echo "❌ KVERSION_MAP 中没有找到 $FILE_BASE 对应的版本信息"
+            echo "❌ KVERSION_MAP 中没有找到 $FILE_CONF 对应的版本信息"
           fi
           echo "解析 README.md 获取 CPUD 和 BUILD_METHOD..."
           if [[ -s "$README_PATH" ]]; then
@@ -330,16 +331,19 @@ jobs:
       - name: Initialize Repo and Sync
         run: |
           mkdir kernel_workspace && cd kernel_workspace
-          repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${{ env.CPU }} -m ${{ github.event.inputs.FILE }}.xml --depth=1
-          repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --force-sync
+          mkdir -p .repo/manifests
+          FILE="${{ github.event.inputs.FILE }}"
+          cp "$GITHUB_WORKSPACE/.repo/manifests_fallback/${FILE}.xml" ".repo/manifests/${FILE}.xml"
+          repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/${{env.CPU}} -m "${FILE}.xml" --repo-rev=v2.16 --depth=1 --no-clone-bundle --no-tags
+          repo sync -c -j$(nproc) --no-clone-bundle --no-tags --force-sync
           if [ -e kernel_platform/common/BUILD.bazel ]; then
             sed -i '/^[[:space:]]*"protected_exports_list"[[:space:]]*:[[:space:]]*"android\/abi_gki_protected_exports_aarch64",$/d' kernel_platform/common/BUILD.bazel
           fi
           if [ -e kernel_platform/msm-kernel/BUILD.bazel ]; then
             sed -i '/^[[:space:]]*"protected_exports_list"[[:space:]]*:[[:space:]]*"android\/abi_gki_protected_exports_aarch64",$/d' kernel_platform/msm-kernel/BUILD.bazel
           fi
-          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
-          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+          rm -f ./kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+          rm -f ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
 
       # 自定义内核后缀
       - name: Custom Kernel Suffix if set
@@ -658,6 +662,10 @@ jobs:
             echo "CONFIG_ZRAM_WRITEBACK=y" >> "$CONFIG_FILE"
           fi
 
+          # Add USB config
+          echo "CONFIG_USB_CONFIGFS_OBEX=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_USB_CONFIGFS_ECM_SUBSET=y" >> ./common/arch/arm64/configs/gki_defconfig
+
           # 移除构建审查
           sed -i 's/check_defconfig//' ./common/build.config.gki
 
@@ -787,9 +795,9 @@ jobs:
             cp "$image_path" kernel_workspace/kernel_platform/out/Final-Image-Find/Image
           fi
           if [ -n "$dir2" ] && [ "${{ env.CPU }}" = "sm8750" ] && [ "${{ github.event.inputs.FAST_BUILD }}" = "false" ]; then
-            echo "当前正在使用官方脚本构建 sm8750，需额外复制一些其它镜像文件：dtbo.img、system_dlkm.img、vendor_dlkm.img、vendor_boot.img。请注意，如果你在刷完官方脚本构建后想换成极速构建，请还原这些分区！"
-            echo "You are currently building sm8750 with the official script. Additional image files will be copied: dtbo.img, system_dlkm.img, vendor_dlkm.img, vendor_boot.img. Please note: If you switch to fast build after flashing this build, make sure to restore these partitions!"
-            for file in dtbo.img system_dlkm.erofs.img vendor_dlkm.img vendor_boot.img; do
+            echo "当前正在使用官方脚本构建 sm8750，需额外复制一些其它镜像文件：dtbo.img、system_dlkm.img。请注意，如果你在刷完官方脚本构建后想换成极速构建，请还原这些分区！"
+            echo "You are currently building sm8750 with the official script. Additional image files will be copied: dtbo.img, system_dlkm.img. Please note: If you switch to fast build after flashing this build, make sure to restore these partitions!"
+            for file in dtbo.img system_dlkm.erofs.img; do
               if [ -f "$dir2$file" ]; then
                 target_name="$file"
                 if [ "$file" = "system_dlkm.erofs.img" ]; then
