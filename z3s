@@ -1,0 +1,29 @@
+# A simple action usage
+name: Build Kernel
+on:
+  workflow_dispatch:
+
+jobs:
+  Build-Kernel:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - name: Astolfo+
+      uses: Haruu1416/kernel_build_action@main
+      with:
+          kernel-url: https://github.com/tutorspouch/kernel_samsung_universal9830_sissy_edition.git
+          kernel-dir: Nero
+          kernel-branch: fourteen-qpr3
+          config: exynos9830-z3sxxx_defconfig
+          arch: arm64
+          aosp-gcc: true
+          aosp-clang: true
+          nethunter: true
+          kvm: true
+          android-version: 14
+          aosp-clang-version: r416183b1
+          anykernel3: true
