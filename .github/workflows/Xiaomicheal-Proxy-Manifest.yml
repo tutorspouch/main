@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - 'sm8650'
+          - 'sm8635'
           - 'sm8550'
           - 'sm8450'
           - 'sm8475'
@@ -28,6 +29,7 @@ on:
           - 'oneplus_13r'
           - 'oneplus_pad2'
           - 'oneplus_pad_pro'
+          - 'oneplus_nord_5'
           - 'oneplus_11'
           - 'oneplus_12r'
           - 'oneplus_ace2_pro'
@@ -57,7 +59,7 @@ on:
         default: 'pineapple'
         
       ANDROID_VERSION:
-        description: "内核安卓版本"
+        description: "KMI安卓版本"
         required: true
         type: choice
         options:
@@ -125,6 +127,7 @@ jobs:
     steps:
       # ====================== 系统初始化阶段 ======================
       - name: "🚀 Maximize Build Space | 最大化构建空间"
+        if: ${{ github.event.inputs.KERNEL_VERSION != '6.1' }}
         uses: easimon/maximize-build-space@master
         with:
           root-reserve-mb: 8192
@@ -228,19 +231,20 @@ jobs:
 
       - name: "⬇️ Clone Kernel Source | 克隆内核源码"
         run: |
-         echo "🌐 正在初始化内核仓库..."
-         mkdir kernel_workspace && cd kernel_workspace
+          echo "🌐 正在初始化内核仓库..."
+          mkdir kernel_workspace && cd kernel_workspace
          
-         repo init -u https://github.com/Xiaomichael/kernel_manifest.git -b refs/heads/oneplus/${{ github.event.inputs.CPU }} -m ${{ github.event.inputs.FEIL }}.xml --depth=1
-         echo "🔄 同步代码库(使用$(nproc --all)线程)..."
-         repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --force-sync
+          repo init -u https://github.com/Xiaomichael/kernel_manifest.git -b refs/heads/oneplus/${{ github.event.inputs.CPU }} -m ${{ github.event.inputs.FEIL }}.xml --depth=1
+          echo "🔄 同步代码库(使用$(nproc --all)线程)..."
+          repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --force-sync
+          
+          echo "⬇️ 下载内核设置工具..."
+          curl -L -o kernel_setup.bin https://github.com/Xiaomichael/OnePlus-Actions/raw/Build/script/kernel_setup.bin
+          chmod +x kernel_setup.bin
+          ./kernel_setup.bin
          
-         echo "⬇️ 下载内核设置工具..."
-         curl -L -o kernel_setup.bin https://github.com/Xiaomichael/OnePlus-Actions/raw/Build/script/kernel_setup.bin
-         chmod +x kernel_setup.bin
-         ./kernel_setup.bin
+          echo "✅ 内核配置完成"
          
-         echo "✅ 内核配置完成"
       # ====================== 内核定制阶段 ======================
       - name: "⚡ Setup SukiSU Ultra | 配置SukiSU Ultra"
         run: |
@@ -273,7 +277,6 @@ jobs:
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}
           git clone https://github.com/Xiaomichael/kernel_patches.git
           git clone https://github.com/ShirkNeko/SukiSU_patch.git
-          # git clone https://github.com/Lama3L9R/sukisu-quick-setup.git
           
           cd kernel_platform
           echo "📝 复制补丁文件..."
@@ -285,7 +288,6 @@ jobs:
           if [ "${{ github.event.inputs.lz4kd }}" = "Off" ] && [ "${{ github.event.inputs.KERNEL_VERSION }}" = "6.1" ]; then
             cp ../kernel_patches/zram/001-lz4.patch ./common/
             cp ../kernel_patches/zram/lz4armv8.S ./common/lib
-            # cp ../kernel_patches/zram/lz4-oneplus.patch ./common/
             cp ../kernel_patches/zram/002-zstd.patch ./common/
           fi
           
@@ -307,7 +309,6 @@ jobs:
           if [ "${{ github.event.inputs.lz4kd }}" = "Off" ] && [ "${{ github.event.inputs.KERNEL_VERSION }}" = "6.1" ]; then
             echo "📦 应用lz4+zstd补丁..."
             git apply -p1 < 001-lz4.patch || true
-            # patch -p1 < lz4-oneplus.patch || true
             patch -p1 < 002-zstd.patch || true
           fi
           
@@ -319,9 +320,6 @@ jobs:
             patch -p1 -F 3 < lz4k_oplus.patch || true
           fi
           
-          # Add support for zakosu
-          # cp ../sukisu-quick-setup/patches/01-add-zakosu-manager.patch ./common/
-          # patch -p1 -F 3 < 01-add-zakosu-manager.patch
           echo "✅ 所有补丁应用完成"
 
       - name: "⚙️ Configure Kernel Options | 配置内核选项"
@@ -372,14 +370,16 @@ jobs:
             echo "CONFIG_CRYPTO_LZ4K_OPLUS=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_ZRAM_WRITEBACK=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
+          
           if [ "${{ github.event.inputs.KERNEL_VERSION }}" == "6.1" ]; then
             # Add O2 config
-            echo "📦 为6.1加入O2优化"
+            echo "📦 为6.1加入O2优化..."
             echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
 
           if [ "${{ github.event.inputs.proxy }}" == "On" ]; then
             # Add proxy config
+            echo "📦 加入代理优化..."
             echo "CONFIG_BPF_STREAM_PARSER=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_NETFILTER_XT_SET=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -406,7 +406,7 @@ jobs:
           fi
           
           if [ "${{ github.event.inputs.KERNEL_VERSION }}" = "5.10" ] || [ "${{ github.event.inputs.KERNEL_VERSION }}" = "5.15" ]; then
-            echo "📦 正在为5.10系与5.15系配置lto中...."
+            echo "📦 正在为5.10系与5.15系配置lto中..."
             DEFCONFIG=./common/arch/arm64/configs/gki_defconfig
             sed -i 's/^CONFIG_LTO=n/CONFIG_LTO=y/' "$DEFCONFIG"
             sed -i 's/^CONFIG_LTO_CLANG_FULL=y/CONFIG_LTO_CLANG_THIN=y/' "$DEFCONFIG"
@@ -432,12 +432,14 @@ jobs:
             sudo apt install libelf-dev
             cd kernel_workspace/kernel_platform/common
             make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2 gki_defconfig all
+            
           elif [ "${{ github.event.inputs.KERNEL_VERSION }}" == "5.15" ]; then
             export PATH="$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/prebuilts/clang/host/linux-x86/clang-r450784e/bin:$PATH"
             export PATH="/usr/lib/ccache:$PATH"
             sudo apt install libelf-dev
             cd kernel_workspace/kernel_platform/common
             make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out gki_defconfig all
+            
           elif [ "${{ github.event.inputs.KERNEL_VERSION }}" == "5.10" ]; then
             export PATH="$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/prebuilts-master/clang/host/linux-x86/clang-r416183b/bin:$PATH"
             export PATH="/usr/lib/ccache:$PATH"
@@ -445,6 +447,7 @@ jobs:
             cd kernel_workspace/kernel_platform/common
             make -j$(nproc --all) LLVM_IAS=1 LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out gki_defconfig all
           fi
+          
           # 显示ccache统计信息
           ccache -s
           echo "✅ 内核编译完成"
@@ -460,7 +463,7 @@ jobs:
           image_path=$(find "./kernel_workspace/kernel_platform/common/out/" -name "Image" | head -n 1)
           if [ -n "$image_path" ]; then
             dir1=$(dirname "$image_path")/
-            echo "✅ 使用 make 编译的统一路径，成功找到 Image 文件 ✅"
+            echo "✅ 成功找到 Image 文件"
           fi
           if [ -n "$image_path" ] && [ -f "$image_path" ]; then
             echo "Image file finally located at: $image_path"
@@ -519,7 +522,7 @@ jobs:
             # zip -q -r "../${{ steps.set_name.outputs.ARTIFACT_NAME }}.zip" ./*
             # cd ..
             # cat > release.txt << 'EOF'
-            # ${{ github.event.inputs.FEIL }}
+            # \# ${{ github.event.inputs.FEIL }}
             # ```
             # 构建时间：$(TZ=Asia/Shanghai date)
             # 内核版本：${{ github.event.inputs.ANDROID_VERSION}}-${{ github.event.inputs.KERNEL_VERSION }}
@@ -530,7 +533,6 @@ jobs:
             # EOF
 
       # - name: "📤 Upload to telegram | 上传至Telegram群组"
-        # if: ${{secrets.BOT_TOKEN != ""}}
         # uses: puernya/tg-bot-upload@v1
         # with:
           # bot-id: ${{ secrets.BOT_TOKEN }}
@@ -539,5 +541,5 @@ jobs:
           # file-path: "${{ steps.set_name.outputs.ARTIFACT_NAME }}.zip"
           # caption-path: release.txt
           
-      #- name: 📊 Post-build disk check (构建后空间检查)
-      #  run: df -h
+      - name: 📊 Post-build disk check (构建后空间检查)
+        run: df -h
