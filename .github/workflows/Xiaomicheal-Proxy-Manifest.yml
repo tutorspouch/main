@@ -238,11 +238,19 @@ jobs:
           echo "🔄 同步代码库(使用$(nproc --all)线程)..."
           repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --force-sync
           
-          echo "⬇️ 下载内核设置工具..."
-          curl -L -o kernel_setup.bin https://github.com/Xiaomichael/OnePlus-Actions/raw/Build/script/kernel_setup.bin
-          chmod +x kernel_setup.bin
-          ./kernel_setup.bin
-         
+          echo "Kernel version:-${{ github.event.inputs.ANDROID_VERSION }}-oki-xiaoxiaow"
+          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+          sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
+          sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
+          sed -i 's/ -dirty//g' kernel_platform/external/dtc/scripts/setlocalversion
+          sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/common/scripts/setlocalversion
+          sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/msm-kernel/scripts/setlocalversion
+          sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/external/dtc/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "-${{ github.event.inputs.ANDROID_VERSION }}-oki-xiaoxiaow"|' kernel_platform/common/scripts/setlocalversion            
+          sed -i '$s|echo "\$res"|echo "-${{ github.event.inputs.ANDROID_VERSION }}-oki-xiaoxiaow"|' kernel_platform/msm-kernel/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "-${{ github.event.inputs.ANDROID_VERSION }}-oki-xiaoxiaow"|' kernel_platform/external/dtc/scripts/setlocalversion
+
           echo "✅ 内核配置完成"
          
       # ====================== 内核定制阶段 ======================
@@ -413,6 +421,7 @@ jobs:
             sed -i 's/^CONFIG_LTO_CLANG_NONE=y/CONFIG_LTO_CLANG_THIN=y/' "$DEFCONFIG"
             grep -q '^CONFIG_LTO_CLANG_THIN=y' "$DEFCONFIG" || echo 'CONFIG_LTO_CLANG_THIN=y' >> "$DEFCONFIG"
           fi
+
           # Add USB config
           echo "CONFIG_USB_CONFIGFS_OBEX=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_USB_CONFIGFS_ECM_SUBSET=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -425,7 +434,7 @@ jobs:
         run: |
           echo "🏗️ 开始内核编译..."
           if [ "${{ github.event.inputs.KERNEL_VERSION }}" == "6.1" ]; then
-            export KBUILD_BUILD_TIMESTAMP="Thu May 29 07:25:40 UTC 2025"
+            export KBUILD_BUILD_TIMESTAMP="Mon Jul 7 01:51:02 UTC 2025"
             export KBUILD_BUILD_VERSION=1
             export PATH="$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/prebuilts/clang/host/linux-x86/clang-r487747c/bin:$PATH"
             export PATH="/usr/lib/ccache:$PATH"
@@ -514,32 +523,6 @@ jobs:
         with:
           name: zram.ko
           path: ./kernel_workspace/kernel_platform/common/out/drivers/block/zram/zram.ko
-
-      # - name: "📦 Package files | 打包文件"
-        # run: |
-            # echo "📦📤 正在打包文件..."
-            # cd AnyKernel3
-            # zip -q -r "../${{ steps.set_name.outputs.ARTIFACT_NAME }}.zip" ./*
-            # cd ..
-            # cat > release.txt << 'EOF'
-            # \# ${{ github.event.inputs.FEIL }}
-            # ```
-            # 构建时间：$(TZ=Asia/Shanghai date)
-            # 内核版本：${{ github.event.inputs.ANDROID_VERSION}}-${{ github.event.inputs.KERNEL_VERSION }}
-            # KSU 版本：${{env.KSUVER_STR}}(${{env.KSUVER}})
-            # KPM 状态：${{ github.event.inputs.KPM }}
-            # LZ4KD 状态: ${{ github.event.inputs.lz4kd }}
-            # ```
-            # EOF
-
-      # - name: "📤 Upload to telegram | 上传至Telegram群组"
-        # uses: puernya/tg-bot-upload@v1
-        # with:
-          # bot-id: ${{ secrets.BOT_TOKEN }}
-          # chat-id: ${{ secrets.CHATID }}
-          # topic-id: ${{ secrets.MESSAGE_THREAD_ID }} 
-          # file-path: "${{ steps.set_name.outputs.ARTIFACT_NAME }}.zip"
-          # caption-path: release.txt
           
       - name: 📊 Post-build disk check (构建后空间检查)
         run: df -h
