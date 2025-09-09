@@ -278,6 +278,8 @@ jobs:
           fi
           
           ./sukisu_setup.bin
+          rm -rf ./sukisu_setup.bin
+          
           echo "✅ SukiSU Ultra配置完成"
           
       - name: "🔧 Set up SUSFS | 配置 SUSFS"
@@ -291,7 +293,7 @@ jobs:
           cd kernel_platform
           echo "📝 复制补丁文件..."
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
-          cp ../kernel_patches/next/syscall_hooks.patch ./common/
+          cp ../kernel_patches/sukisu/scope_min_manual_hooks_v1.4.patch ./common/
           cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
           
@@ -314,7 +316,7 @@ jobs:
           patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
           cp ../../kernel_patches/69_hide_stuff.patch ./
           patch -p1 -F 3 < 69_hide_stuff.patch
-          patch -p1 -F 3 < syscall_hooks.patch
+          patch -p1 -F 3 < scope_min_manual_hooks_v1.4.patch
           
           if [ "${{ github.event.inputs.lz4kd }}" = "Off" ] && [ "${{ github.event.inputs.KERNEL_VERSION }}" = "6.1" ]; then
             echo "📦 应用lz4+zstd补丁..."
@@ -436,7 +438,7 @@ jobs:
         run: |
           echo "🏗️ 开始内核编译..."
           if [ "${{ github.event.inputs.KERNEL_VERSION }}" == "6.1" ]; then
-            export KBUILD_BUILD_TIMESTAMP="Mon Jul 7 01:51:02 UTC 2025"
+            export KBUILD_BUILD_TIMESTAMP="Wed Aug  6 13:29:27 UTC 2025"
             export KBUILD_BUILD_VERSION=1
             export PATH="$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/prebuilts/clang/host/linux-x86/clang-r487747c/bin:$PATH"
             export PATH="/usr/lib/ccache:$PATH"
