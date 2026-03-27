@@ -1,0 +1,5 @@
+patch -p1 < your-patch.patch
+git status
+git add .
+git commit -m "Apply patch"
+git push origin main
